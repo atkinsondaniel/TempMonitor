@@ -82,32 +82,42 @@ def run_socket():
 	sock.bind( ("0.0.0.0", 8000) )
 	sock.listen(1)
 	print("Waiting for Pi Connection")
-	socket_thread.start()
+#	socket_thread.start()
 	connection, client_address = sock.accept()
 	print("Connected received ", client_address)
 
 	row = []
 	tempHigh = False  # keeps from constantly sending emails
+	counter = 0
+	timer = 180
 	while True:
-		temp_c = connection.recv(6)  # 5 numbers + newline char
-		temp_f = float(temp_c)/1000 * 9/5 + 32  # convert to fahrenheit
-		if float(temp_f) > 79.0 and not tempHigh:
-			print('oh god oh jeez')
-			start_new_thread(alert,())
-			tempHigh = True  # threshold exceeded
-		elif float(temp_f) < 79.0:
-			tempHigh = False  # threshold not exceeded
-		time1 = datetime.datetime.now()
-		row.append(time1)
-		row.append(temp_f)
+		counter += 1
+		timer += 1
+		temp_c = connection.recv(5).strip()  # 5 numbers + newline char
+		print(str(counter) + "!" + temp_c + "!" + str(timer))
+		if temp_c != "":
+			temp_f = float(temp_c)/1000 * 9/5 + 32  # convert to fahrenheit
+			if float(temp_f) > 79.0 and not tempHigh and timer > 180:
+				print('oh god oh jeez')
+#				start_new_thread(alert,())
+				alert()
+				tempHigh = True  # threshold exceeded
+				timer = 0
+			elif float(temp_f) < 79.0:
+				tempHigh = False  # threshold not exceeded
+			time1 = datetime.datetime.now()
+			row.append(time1)
+			row.append(temp_f)
 
-		with open('temp.csv', 'a') as csvWrite:
-			logWriter = csv.writer(csvWrite, delimiter=',', quotechar='|',lineterminator='\n')
-			logWriter.writerow(row)
-		graph()
-		del row[0]
-		del row[0]
-
+			with open('temp.csv', 'a') as csvWrite:
+				logWriter = csv.writer(csvWrite, delimiter=',', quotechar='|',lineterminator='\n')
+				logWriter.writerow(row)
+			graph()
+			del row[0]
+			del row[0]
+		else:
+			print("empty socket response")
+			break
 def graph():
 #plot last 25 entries
 	df = pd.read_csv("temp.csv", parse_dates=['datetime'], index_col="datetime")
