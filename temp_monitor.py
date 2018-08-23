@@ -97,13 +97,13 @@ def run_socket():
 		print(str(counter) + "!" + temp_c + "!" + str(timer))
 		if temp_c != "":
 			temp_f = float(temp_c)/1000 * 9/5 + 32  # convert to fahrenheit
-			if float(temp_f) > 79.0 and not tempHigh and timer > 180:
+			if float(temp_f) > 93.0 and not tempHigh and timer > 180:
 				print('oh god oh jeez')
 #				start_new_thread(alert,())
 				alert()
 				tempHigh = True  # threshold exceeded
 				timer = 0
-			elif float(temp_f) < 79.0:
+			elif float(temp_f) < 93.0:
 				tempHigh = False  # threshold not exceeded
 			time1 = datetime.datetime.now()
 			row.append(time1)
@@ -123,10 +123,10 @@ def graph():
 	df = pd.read_csv("temp.csv", parse_dates=['datetime'], index_col="datetime")
 	filter = df.tail(25)  # only graph recent entries
 	filter.plot()
-	plt.ylim([60,100])
+	plt.ylim([60,120])
 	plt.annotate('%0.2f' % filter['temp'][filter.index[-1]], xy=(1, filter['temp'][filter.index[-1]]), xytext=(8, 0), 
              xycoords=('axes fraction', 'data'), textcoords='offset points')  # write last entry along right side
-	plt.axhline(y=79, color='red')
+	plt.axhline(y=93, color='red')
 	plt.savefig("graph.png")
 	plt.close('all')  # saves ram
 
